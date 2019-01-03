@@ -199,5 +199,8 @@
             #end
         ]]>
     </jpql>
+    <jpql>
+        select * from person_info
+    </jpql>
 
 </jpa>
