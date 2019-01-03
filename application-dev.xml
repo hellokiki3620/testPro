@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<jpa module="person_base_archive">
+
+    <jpql id="textSearch0"  resultClass="com.kedacom.szplatform.data.icmp.person.vo.PersonArchiveInfoVO" native="true">
+        <![CDATA[
+        #if($searchRange == 0)
+            select * from (
+                        SELECT
+                            person.id person_id,
+                            person.person_name,
+                            person.identity_card,
+                            person.person_gender person_gender_value,
+                            person.person_type person_type_value,
+                            vt.tag_name,
+                            max(pba.person_base_pic) photo_url,
+                            max(pba.base_id) base_id,
+                            group_concat(pba.obj_id) obj_id
+                        FROM
+                            person_base_archives pba
+                            JOIN person_info person ON pba.person_id = person.id
+                            LEFT JOIN v_person_tag_name vt on pba.person_id = vt.person_id
+                        WHERE
+                            1 = 1
+							and pba.obj_id is not null
+                        GROUP BY
+                            pba.person_id
+
+                        UNION ALL
+
+                        SELECT
+                            null person_id,
+                            null person_name,
+                            null identity_card,
+                            null tag_name,
+                            null person_type_value,
+                            null person_gender_value,
+                            max(pba.person_base_pic) photo_url,
+                            max(pba.base_id) base_id,
+                            pba.obj_id
+                        FROM
+                            person_base_archives pba
+
+                        WHERE
+                            1 = 1
+							and pba.obj_id is not null
+							and pba.base_id is not null
+                        GROUP BY
+                            pba.obj_id
+                ) temp
+            where 1=1
+                #if($personName && $personName != "")
+                    and temp.person_name like :%personName%
+                #end
+                #if($idType && $idType != "")
+                    and temp.person_id in(
+                            select t.person_id from person_card_info t
+                                where
+                                    t.card_type = :idType
+                                #if($identityCard && $identityCard != "")
+                                    and t.card_no  like :%identityCard%
+                                #end
+                        )
+                #end
+        #end
+        #if($searchRange == 1)
+            SELECT * FROM (
+                        SELECT
+                            person.id person_id,
+                            person.person_name,
+                            person.identity_card,
+                            person.person_gender person_gender_value,
+                            person.person_type person_type_value,
+                            vt.tag_name,
+                            max(pba.person_base_pic) photo_url,
+                            max(pba.base_id) base_id,
+                            group_concat(pba.obj_id) obj_id
+                        FROM
+                            person_base_archives pba
+                            JOIN person_info person ON pba.person_id = person.id
+                            LEFT JOIN v_person_tag_name vt on pba.person_id = vt.person_id
+                        WHERE
+                            1 = 1
+							and pba.obj_id is not null
+                        GROUP BY
+                            pba.person_id
+                        )temp
+            where 1=1
+            #if($personName && $personName !="")
+                and temp.person_name like :%personName%
+            #end
+            #if($idType && $idType != "")
+                    and temp.person_id in(
+                            select t.person_id from person_card_info t
+                                where
+                                    t.card_type = :idType
+                                #if($identityCard && $identityCard != "")
+                                    and t.card_no like :%identityCard%
+                                #end
+                        )
+            #end
+        #end
+        #if($searchRange == 2)
+            SELECT
+                cast(null as char) person_id,
+                cast(null as char) person_name,
+                cast(null as char) identity_card,
+                cast(null as char) tag_name,
+                cast(null as char) person_type_value,
+                cast(null as char) person_gender_value,
+                max(pba.person_base_pic) photo_url,
+                max(pba.base_id) base_id,
+                pba.obj_id
+            FROM
+                person_base_archives pba
+            WHERE
+                1 = 1
+				and pba.obj_id is not null
+				and pba.base_id is not null
+            #if($personName && $personName != "")
+                and 1=2
+            #end
+            #if($idType && $idType != "")
+                and 1=2
+            #end
+            GROUP BY
+                pba.obj_id
+        #end
+        ]]>
+    </jpql>
+
+    <jpql id ="strangerTotal" resultClass="com.kedacom.adc.data.ra.dto.NumberDTO" native="true">
+        <![CDATA[
+        select count(*) number
+        from
+            (SELECT
+                null person_id,
+                null person_name,
+                null identity_card,
+                null tag_name,
+                null person_type_value,
+                null person_gender_value,
+                max(pba.person_base_pic) person_base_pic,
+                max(pba.base_id) base_id,
+                pba.obj_id
+            FROM
+                person_base_archives pba
+            WHERE
+                1 = 1
+				and pba.obj_id is not null
+				and pba.base_id is not null
+            #if($personName && $personName !="")
+                and 1=2
+            #end
+            #if($idType && $idType != "")
+                and 1=2
+            #end
+            GROUP BY
+                pba.obj_id
+            ) temp
+            ]]>
+    </jpql>
+
+    <jpql id ="realTotal" resultClass="com.kedacom.adc.data.ra.dto.NumberDTO" native="true">
+        <![CDATA[
+        SELECT count(*) number FROM (
+            SELECT
+                person.id person_id,
+                person.person_name,
+                person.identity_card,
+                person.person_gender person_gender_value,
+                person.person_type person_type_value,
+                vt.tag_name,
+                max(pba.person_base_pic) person_base_pic,
+                max(pba.base_id) base_id,
+                group_concat(pba.obj_id) obj_id
+            FROM
+                person_base_archives pba
+                JOIN person_info person ON pba.person_id = person.id
+                LEFT JOIN v_person_tag_name vt on pba.person_id = vt.person_id
+            WHERE
+                1 = 1
+				and pba.obj_id is not null
+            GROUP BY
+                pba.person_id
+            )temp
+        where 1=1
+            #if($personName && $personName != "")
+                and temp.person_name like :%personName%
+            #end
+            #if($idType && $idType != "")
+                    and temp.person_id in(
+                            select t.person_id from person_card_info t
+                                where
+                                    t.card_type = :idType
+                                #if($identityCard && $identityCard != "")
+                                    and t.card_no like :%identityCard%
+                                #end
+                        )
+            #end
+        ]]>
+    </jpql>
+
+</jpa>
