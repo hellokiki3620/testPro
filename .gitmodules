@@ -1,0 +1,3 @@
+[submodule "submodules/myPro"]
+	path = submodules/myPro
+	url = git@github.com:hellokiki3620/myPro.git
